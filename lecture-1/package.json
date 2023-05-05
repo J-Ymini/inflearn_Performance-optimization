@@ -36,7 +36,9 @@
     ]
   },
   "devDependencies": {
+    "cra-bundle-analyzer": "^0.1.1",
     "json-server": "^0.15.1",
-    "serve": "^11.3.0"
+    "serve": "^11.3.0",
+    "webpack-bundle-analyzer": "^4.8.0"
   }
 }

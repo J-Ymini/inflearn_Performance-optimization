@@ -49,3 +49,97 @@
 <div align="center"><img width="400" alt="image" src="https://user-images.githubusercontent.com/75535651/233836089-a74c6e14-d233-4622-b590-15d2cb56ed88.png"></div>
 
 - `removeSpecialCharacter` 함수 로직을 변경한 결과, 함수 호출 시간 감소 확인 및 퍼포먼스 점수 증가 확인
+
+**bundle 파일 분석**
+
+- [webpack-bundle-analyzer](https://www.npmjs.com/package/webpack-bundle-analyzer)를 통해 번들 크기 확인 가능 (CRA의 경우, [cra-bundle-analyzer](https://www.npmjs.com/package/cra-bundle-analyzer) 사용)
+
+<div align="center"><img width="400" alt="image" src="https://user-images.githubusercontent.com/75535651/234035812-a62d5c45-9b53-4fe7-9c47-e3527243e1f2.png"></div>
+
+- 번들 사이즈가 가장 큰 모듈인 `refractor`은 마크다운 문법에서 코드 블록 내부의 색상 강조를 위한 모듈로서, 리스트 페이지가 아닌 뷰페이지에서만 필요함. 따라서 [라우트 기반 코드 스플리팅](https://legacy.reactjs.org/docs/code-splitting.html#route-based-code-splitting)을 통해서 불필요 리소스를 줄일 필요가 있음
+
+- `Suspense`, `lazy`를 통해 개선 (`lazy loading`)
+- 기존에는 코드 스플리팅의 실제 주체는 리액트가 아닌 웹팩이므로 웹팩 설정 필요하나, CRA의 경우 Lazy loading 관련 코드만 수정하면 됨
+
+``` typescript
+// before
+import React from 'react';
+import { Switch, Route } from 'react-router-dom';
+import './App.css';
+import ListPage from './pages/ListPage/index';
+import ViewPage from './pages/ViewPage/index';
+
+function App() {
+  return (
+    <div className="App">
+      <Switch>
+        <Route path="/" component={ListPage} exact />
+        <Route path="/view/:id" component={ViewPage} exact />
+      </Switch>
+    </div>
+  );
+}
+
+export default App;
+
+
+// after
+import React, { Suspense, lazy } from 'react';
+import { Switch, Route } from 'react-router-dom';
+import './App.css';
+
+const ListPage = lazy(() => import('./pages/ListPage/index'));
+const ViewPage = lazy(() => import('./pages/ViewPage/index'));
+
+function App() {
+  return (
+    <div className="App">
+      <Suspense fallback={<div>Loading...</div>}>
+        <Switch>
+          <Route path="/" component={ListPage} exact />
+          <Route path="/view/:id" component={ViewPage} exact />
+        </Switch>
+      </Suspense>
+    </div>
+  );
+}
+
+export default App;
+```
+
+<div align="center"><img width="400" alt="image" src="https://user-images.githubusercontent.com/75535651/236390077-6fee3b47-8a43-4b53-a927-bfd9a5110441.png"></div>
+
+<div align="center"><img width="400" alt="image" src="https://user-images.githubusercontent.com/75535651/236389843-d0b3f902-8be4-44fc-a2d9-88c30c9305d0.gif"></div>
+
+- `chunk.js` 파일 분리 및 뷰페이지 진입시 필요한 `chunk.js` 파일 추가 로드 확인
+
+## 추가 성능 개선
+
+**텍스트 압축 (리소스 로딩 속도 개선)**
+
+<div align="center"><img width="580" alt="image" src="https://user-images.githubusercontent.com/75535651/236391247-8e0bc99d-444c-44e2-840f-d50155d769fc.png"></div>
+
+- 빌드 파일에서는, 텍스트 압축 관련 성능 개선 사항 문구 추가 확인 가능
+
+<div align="center"><img width="633" alt="image" src="https://user-images.githubusercontent.com/75535651/236392301-7b625c42-28f3-433c-af44-e11044f8e566.png"></div>
+
+- `/articles` api를 통해 받아오는 텍스트들을 gzip 형태로 압축하여 전달받고 있음을 확인
+
+- 현재 프로젝트 기준의 번들 파일들의 경우, 텍스트 압축이 이루어지지 않고 있기 때문에 스크립트의 serve command의 options을 수정함으로써 텍스트 압축 가능
+
+<div align="center"><img width="434" alt="image" src="https://user-images.githubusercontent.com/75535651/236393870-34adf461-4597-4d5e-829a-cdf2636a06c1.png"></div>
+
+``` json
+// before
+"serve": "npm run build && node ./node_modules/serve/bin/serve.js -u -s build",
+
+// after
+"serve": "npm run build && node ./node_modules/serve/bin/serve.js -s build",
+
+```
+
+- 무분별하게 모든 파일들을 압축해서 전달할 경우, 성능 저하의 원인이 될 수 있기 때문에 파일의 크기가 2KB 이상의 경우에만 압축을 진행하는 것을 권장
+
+<div align="center"><img width="1588" alt="image" src="https://user-images.githubusercontent.com/75535651/236398784-2b58eea7-3da3-46ab-a378-ee4fc98778d8.png"></div>
+
+- 위와 같이 텍스트 압축을 진행할 경우, 번들 파일의 사이즈가 감소하는 것을 확인할 수 있음
