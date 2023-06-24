@@ -1,25 +1,8 @@
 import React, { useRef, useEffect } from 'react';
+import useLazyLoadingImage from '../hooks/useLazyLoadingImage';
 
 function Card({ children, image }) {
-  const imgRef = useRef(null);
-
-  useEffect(() => {
-    const observerOptions = {};
-
-    const observerCallback = ([{ isIntersecting, target }], observer) => {
-      if (isIntersecting && !target.src) {
-        target.src = target.dataset.src;
-        observer.unobserve(imgRef.current);
-      }
-    };
-
-    const observer = new IntersectionObserver(
-      observerCallback,
-      observerOptions
-    );
-
-    observer.observe(imgRef.current);
-  }, []);
+  const { imgRef } = useLazyLoadingImage();
 
   return (
     <div className="Card text-center">
