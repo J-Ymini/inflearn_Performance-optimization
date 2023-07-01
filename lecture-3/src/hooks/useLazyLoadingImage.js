@@ -13,6 +13,7 @@ const useLazyLoadingImage = () => {
     const observerCallback = ([{ isIntersecting, target }], observer) => {
       if (isIntersecting) {
         target.src = target.dataset.src;
+        target.previousSibling.srcset = target.previousSibling.dataset.srcset;
         observer.unobserve(imgRef.current);
       }
     };
