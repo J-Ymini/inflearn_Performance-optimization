@@ -9,7 +9,7 @@
 
 <br/>
 
-### IntersectionObserver를 통해 lazy loading 적용
+## IntersectionObserver를 통해 lazy loading 적용
 
 ``` javascript
 useEffect(() => {
@@ -38,7 +38,7 @@ useEffect(() => {
 
 <br/>
 
-### 이미지 사이징 최적화
+## 이미지 사이징 최적화
 
 - PNG: 무손실 압축으로, 용량이 비교적으로 큰편
 - JPG: 압축이 많이 되는 대신, 화질의 저하가 존재(권장하는 방법)
@@ -66,3 +66,69 @@ useEffect(() => {
 
 <div align="center">
 <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/839e61dc-a7c0-4a86-baff-b8600d4229be"></div>
+
+<br/>
+
+## 폰트 최적화
+
+<div align="center">
+<img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/0f9458d6-7960-48b7-8ad8-64ca9b71836e"></div>
+
+- 웹 폰트를 적용함으로써 생기는 문제점으로는, 두가지가 존재
+  - FOUT(Font of Unstyled Text): 폰트 다운로드 전, 기본 폰트가 먼저 보여짐
+    - IE, EDGE 브라우저에서 해당 방식 적용
+  - FOIT(Flash of Invisible Text): 폰트가 다운로드 되기 전, 해당 텍스트를 보여주지 않음
+    - Chrome같은 브라우저에서 해당 방식 적용
+- 결론적으로는 **폰트 적용 시점 컨트롤** + **폰트 사이즈 줄이기** 를 통해 최적화 진행
+
+### 폰트 적용 시점 컨트롤하기
+
+- font 속성
+  - auto: 브라우저 기본 동작
+  - block: FOIT(timeout: 3s), 3초까지는 텍스트를 보여주지 않다가 3초 이후부터 기본폰트 visible, 그 이후 적용 폰트의 다운로드가 완료시 해당 폰트 visible
+  - swap: 처음부터 기본 폰트를 보여줌, 그 이후 적용 폰트 다운로드 완료시 해당 폰트가 적용된 텍스트 visible
+  - fallback: FOIT(timeout: 0.1s), 3초 후에 적용 폰트 다운로드가 늦어질 시 기본 폰트 유지, 적용 하고자 하는 폰트는 캐싱을 해둠
+  - optional: FOIT(timeout: 0.1s), 네트워크 상태에 따라 기본폰트 사용 or 웹폰트 사용 여부 결정 및 캐싱
+
+- font-face observer
+  - 폰트 다운로드 완료 시점을 캐칭하는 라이브러리
+
+<div align="center">
+<img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/19be7047-a9f2-4327-a0b5-61de3864b515"></div>
+
+- 폰트 fetch 완료 시점에 맞춰, opacity 및 transition을 사용하여 UX 개선
+
+``` javascript
+import React, { useState } from 'react';
+import video from '../assets/banner-video.mp4';
+import FontFaceObserver from 'fontfaceobserver';
+
+function BannerVideo() {
+  const font = new FontFaceObserver('BMYEONSUNG');
+  const [isFontLoaded, setIsFontLoaded] = useState(false);
+
+// web font download catching
+  font.load(null, 5000).then(() => {
+    setIsFontLoaded(true);
+  });
+
+  return (
+      <div
+        className={`w-full h-full flex justify-center items-center transition-all`}
+        // catching 시점에 맞춰 
+        style={{
+          opacity: isFontLoaded ? 1 : 0,
+          transition: 'opacity 0.3s ease',
+        }}
+      >
+        ...
+      </div>
+  );
+}
+
+export default BannerVideo;
+
+```
+
+<div align="center">
+<img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/f112de9e-b12f-4480-84d7-baa9b284cddb"></div>

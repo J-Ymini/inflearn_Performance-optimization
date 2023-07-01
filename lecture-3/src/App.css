@@ -5,8 +5,10 @@
 @font-face {
 	font-family: BMYEONSUNG;
 	src: url('./assets/fonts/BMYEONSUNG.ttf');
+	font-display: block;
 }
 
 .BannerVideo {
 	font-family: 'BMYEONSUNG', sans-serif;
 }
+
