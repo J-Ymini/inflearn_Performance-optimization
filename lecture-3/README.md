@@ -11,24 +11,21 @@
 
 ## IntersectionObserver를 통해 lazy loading 적용
 
-``` javascript
+```javascript
 useEffect(() => {
   const observerOptions = {};
 
-    const observerCallback = ([{ isIntersecting, target }], observer) => {
-      if (isIntersecting && !target.src) {
-        target.src = target.dataset.src;
-        observer.unobserve(imgRef.current);
-      }
-    };
+  const observerCallback = ([{ isIntersecting, target }], observer) => {
+    if (isIntersecting && !target.src) {
+      target.src = target.dataset.src;
+      observer.unobserve(imgRef.current);
+    }
+  };
 
-    const observer = new IntersectionObserver(
-      observerCallback,
-      observerOptions
-    );
+  const observer = new IntersectionObserver(observerCallback, observerOptions);
 
-    observer.observe(imgRef.current);
-  }, []);
+  observer.observe(imgRef.current);
+}, []);
 ```
 
 <div align="center">
@@ -43,6 +40,7 @@ useEffect(() => {
 - PNG: 무손실 압축으로, 용량이 비교적으로 큰편
 - JPG: 압축이 많이 되는 대신, 화질의 저하가 존재(권장하는 방법)
 - WEBP: 단순하게 말하자면, JPG보다 좋음
+
   - JPG보다 화질 및 용량 측면에서 더 나은 성능을 가지고 있음
 
 - squoosh.app
@@ -55,13 +53,14 @@ useEffect(() => {
 
 - WEBP 이미지는, 지원이 되지 않는 브라우저도 존재하기 때문에 브라우저별 불러올 이미지 타입의 분기가 필요
 
-``` typescript
-  <picture>
-  // webp가 지원이 되는 브라우저에서 정상적으로 렌더링이 될 경우, 해당 이미지를 렌더링
-    <source data-srcset={webp} type="image/webp" />
+```typescript
+<picture>
+  // webp가 지원이 되는 브라우저에서 정상적으로 렌더링이 될 경우, 해당 이미지를
+  렌더링
+  <source data-srcset={webp} type="image/webp" />
   // source tag의 이미지가 정상적으로 렌더링이 되지 않을 경우, img 태그를 렌더링
-    <img data-src={image} ref={imgRef} />
-  </picture>
+  <img data-src={image} ref={imgRef} />
+</picture>
 ```
 
 <div align="center">
@@ -84,6 +83,7 @@ useEffect(() => {
 ### 폰트 적용 시점 컨트롤하기
 
 - font 속성
+
   - auto: 브라우저 기본 동작
   - block: FOIT(timeout: 3s), 3초까지는 텍스트를 보여주지 않다가 3초 이후부터 기본폰트 visible, 그 이후 적용 폰트의 다운로드가 완료시 해당 폰트 visible
   - swap: 처음부터 기본 폰트를 보여줌, 그 이후 적용 폰트 다운로드 완료시 해당 폰트가 적용된 텍스트 visible
@@ -91,44 +91,111 @@ useEffect(() => {
   - optional: FOIT(timeout: 0.1s), 네트워크 상태에 따라 기본폰트 사용 or 웹폰트 사용 여부 결정 및 캐싱
 
 - font-face observer
+
   - 폰트 다운로드 완료 시점을 캐칭하는 라이브러리
 
-<div align="center">
-<img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/19be7047-a9f2-4327-a0b5-61de3864b515"></div>
+  <div align="center">
+  <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/19be7047-a9f2-4327-a0b5-61de3864b515"></div>
 
 - 폰트 fetch 완료 시점에 맞춰, opacity 및 transition을 사용하여 UX 개선
 
-``` javascript
-import React, { useState } from 'react';
-import video from '../assets/banner-video.mp4';
-import FontFaceObserver from 'fontfaceobserver';
+  ```javascript
+  import React, { useState } from 'react';
+  import video from '../assets/banner-video.mp4';
+  import FontFaceObserver from 'fontfaceobserver';
 
-function BannerVideo() {
-  const font = new FontFaceObserver('BMYEONSUNG');
-  const [isFontLoaded, setIsFontLoaded] = useState(false);
+  function BannerVideo() {
+    const font = new FontFaceObserver('BMYEONSUNG');
+    const [isFontLoaded, setIsFontLoaded] = useState(false);
 
-// web font download catching
-  font.load(null, 5000).then(() => {
-    setIsFontLoaded(true);
-  });
+    // web font download catching
+    font.load(null, 5000).then(() => {
+      setIsFontLoaded(true);
+    });
 
-  return (
+    return (
       <div
         className={`w-full h-full flex justify-center items-center transition-all`}
-        // catching 시점에 맞춰 
+        // catching 시점에 맞춰
         style={{
           opacity: isFontLoaded ? 1 : 0,
           transition: 'opacity 0.3s ease',
         }}
       >
-        ...
+        **** ...
       </div>
-  );
-}
+    );
+  }
 
-export default BannerVideo;
-
-```
+  export default BannerVideo;
+  ```
 
 <div align="center">
 <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/f112de9e-b12f-4480-84d7-baa9b284cddb"></div>
+
+### 폰트 사이즈 줄이기
+
+- 폰트 파일 확장자별 특징
+
+  - TTF(True Type Font)/OTF(Open Type Font): 압축이 되지 않는 형태, PC에서 사용
+  - WOFF(Web Open Type Font): 웹에서도 사용하기 용이하게끔 압축한 형태의 폰트
+
+- 폰트 압축은 <https://transfonter.org/> 를 통해 진행
+
+  <div align="center">
+  <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/e568b2e6-c8c7-4192-b004-d5f98c96eb39"></div>
+
+- 기존 폰트의 사이즈와 비교하였을때, 파일 사이즈 감소 확인
+
+  ```css
+  @font-face {
+    font-family: BMYEONSUNG;
+    src: url('./assets/fonts/BMYEONSUNG.woff2') format('woff2'), url('./assets/fonts/BMYEONSUNG.woff')
+        format('woff'), url('./assets/fonts/BMYEONSUNG.ttf') format('truetype');
+    font-display: block;
+  }
+  ```
+
+- web font 적용(css의 font 추가 설정)
+
+  ```css
+  @font-face {
+    font-family: BMYEONSUNG;
+    src: local('BMYEONSUNG'),
+      url('./assets/fonts/BMYEONSUNG.woff2') format('woff2'), url('./assets/fonts/BMYEONSUNG.woff')
+        format('woff'), url('./assets/fonts/BMYEONSUNG.ttf') format('truetype');
+    font-display: block;
+  }
+
+  /* - 로컬에서 사용하고 있는 폰트가 있다면 위와 같이 local 키워드를 사용하여 설치된 폰트를 가져와서 사용하며 다운로드 하지 않음 (로컬에  존재하지 않을 시에만 다운로드) */
+  ```
+
+- subset을 통한, 특정 문자열 폰트 적용
+
+  <div align="center">
+  <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/2087b008-0af1-4b34-9db2-fab0da4c7ea6"></div>
+  <div align="center">
+  <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/e59c6499-f856-4d43-97a1-0e39ac28d1de"></div>
+
+  - 특정 텍스트에만 폰트 적용 및 파일 용량 대폭 감소
+
+- unicode-range
+
+  - 만일 폰트 subset에 할당되지 않은 텍스트에도 폰트를 적용한다고 하였을때, 폰트는 적용되지 않지만 폰트 파일을 불러오는 이슈 발생
+
+  - 아래와 같이, unicode-range를 통해, 특정 unicode 에만 폰트를 적용하도록 `unicode-range` 속성을 사용하여 불필요 폰트 로드 방지
+
+  ```css
+  @font-face {
+    font-family: BMYEONSUNG;
+    src: local('BMYEONSUNG'),
+      url('./assets/fonts/subset-BMYEONSUNG.woff2') format('woff2'), url('./assets/ fonts/subset-BMYEONSUNG.woff')
+        format('woff'), url('./assets/fonts/BMYEONSUNG.ttf') format('truetype');
+    font-display: block;
+    unicode-ragne: 'u+0041, u+0042, u+0043, u+0044, u+0045, u+0047, u+0049, u+004b,   u+004c, u+004d, u+004e, u+004f, u+0050, u+0052';
+  }
+  ```
+
+```
+
+```
