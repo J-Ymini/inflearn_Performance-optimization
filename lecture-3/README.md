@@ -196,6 +196,15 @@ useEffect(() => {
   }
   ```
 
-```
+- data-uri
 
-```
+  - base64로 인코딩된 data-uri를 넣음으로써, CSS 파일을 받은 다음에 font를 가져오는 요청 대신 CSS를 받을 때 한꺼번에 받으면서 HTTP 요청 수 감소 (네트워크 요청X)
+
+  <div align="center">
+  <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/381e6ee8-b881-446e-967a-a632532146be"></div>
+  <div align="center">
+  <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/66c73de6-0235-435c-b06a-7366ffe8d08a"></div>
+  <div align="center">
+  <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/2662bada-1847-48df-bfeb-859ea41c5d69"></div>
+
+  -
