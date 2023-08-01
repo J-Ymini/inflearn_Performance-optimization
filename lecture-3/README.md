@@ -70,7 +70,7 @@ useEffect(() => {
 
 ## 폰트 최적화
 
-<div align="center">
+<**div** align="center">
 <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/0f9458d6-7960-48b7-8ad8-64ca9b71836e"></div>
 
 - 웹 폰트를 적용함으로써 생기는 문제점으로는, 두가지가 존재
@@ -207,4 +207,39 @@ useEffect(() => {
   <div align="center">
   <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/2662bada-1847-48df-bfeb-859ea41c5d69"></div>
 
-  -
+## 캐시 최적화
+
+퍼포먼스 탭에서, 정적 파일들의 효율적인 캐시 정책이 필요함을 확인
+
+  <div align="center">
+  <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/3227738c-fff0-4d22-9ec7-f6bfb23c8267"></div>
+
+### 캐시란?
+
+- 데이터나 값을 미리 복사해놓은 장소, 혹은 임시 동작
+- 캐시 종류는 메모리 캐시, 디스크 캐시 존재
+  - 디스크 캐시: 하드디스크의 정보를 RAM에 임시 저장하여 접근 속도 향상
+  - 메모리 캐시: RAM에 접근하는 속도조차 CPU 입장에서는 느리므로 CPU에 근접한 캐시 메모리에 저장하여 CPU 처리속도 병목현상 개선
+
+### 캐시 적용
+
+- 캐시를 적용하고자 할때, header에 `Cache-control` setting 필요
+
+  - `no-cache`: 캐시를 사용하기 전, 서버에게 검사를 받은 후 사용 결정(max-age=0과 동일)
+  - `no-store`: 캐시 사용 X
+  - `public`: 모든 환경에서 캐시 사용
+  - `private`: 브라우저 환경에서만 캐시 사용, 외부 서버에서는 캐시 사용 불가(ex> 서버)
+  - `max-age`: 캐시의 유효시간(유효 시간이 지났어도, 캐시를 바로 버리는 것이 아닌 서버에게 캐시 사용 여부 확인 후에 캐시 사용 or 새로운 응답 수신)
+
+### 캐시 확인
+
+  <div align="center">
+  <img width="600" alt="image" src="https://github.com/J-Ymini/J-Ymini/assets/75535651/7f63086e-c516-42dc-92fe-006bb4895e46"></div>
+
+- 캐시 유효 시간이 지난 후에, byte 단위로 파일들을 받아오는 것을 확인
+- 캐시는 만료되었기 때문에 새로 데이터를 받아야 하나, 해당 리소스가 수정되지 않았다면 캐시에 존재하는 리소스를 그대로 사용 => 응답하는 과정만 거쳤기 때문에 트래픽 사이즈가 매우 낮은 것을 확인
+
+### ETag를 통한 cache의 최신 상태 확인
+
+- 리소스마다 갖고 있는, 특정 고유 해시
+- 즉 cache 변경 여부 판단은 리소스가 아닌 ETag로 판단하여 변경 여부 확인
